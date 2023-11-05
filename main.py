@@ -1,7 +1,5 @@
 from data_list_grover import DataListGrover
 from quantum_cirq_func import create_h_prep
-import os
-import matplotlib.pyplot as plt
 data_list = [1,2,3,4]
 winner = 2
 list_grover = DataListGrover(data_list, winner, prep_func=create_h_prep)
