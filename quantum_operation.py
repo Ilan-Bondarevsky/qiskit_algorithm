@@ -1,5 +1,4 @@
-from qiskit import Aer, execute
-from qiskit import ClassicalRegister
+from qiskit import Aer, execute, ClassicalRegister
 import qiskit.providers.fake_provider
 from qiskit.tools.visualization import plot_histogram
 import matplotlib.pyplot as plt
@@ -27,6 +26,15 @@ class QuantumOperation:
         job = execute(self.current_circuit, backend)
         result = job.result()
         return result.get_unitary(self.current_circuit, decimals)
+    
+    def get_state_vector(self):
+        '''Get state vector of current circuit circuit'''
+        if self.current_circuit is None:
+            return None
+        backend = Aer.get_backend('statevector_simulator')
+        job = execute(self.current_circuit, backend)
+        result = job.result()
+        return result.get_statevector(self.current_circuit)
     
     def get_fake_backend(self, backend_name=None, min_qubit=None, max_qubit = None):
         '''Getting backends based on a few options or the full list or a specific backend name'''
@@ -65,28 +73,8 @@ class QuantumOperation:
         self.last_result['circuit'] = run_qc
         self.last_result['count'] = result.get_counts(run_qc)
         self.last_result['time']  = result.time_taken
-        return result
+        return self.last_result
     
-    def draw_histogram(self, save_plt=False, file_directory=None,plot_title = None):
-        '''Drawing the histogram of the last circuit.\n
-        Can save in directory'''
-        if self.last_result['count'] is None:
-            return None
-        if plot_title is None:
-            plot_title = self.last_result['circuit_Name']
-        plot_histogram(self.last_result['count'], title=plot_title).show()
-        if save_plt:
-            plt.savefig(os.path.join(
-                file_directory if file_directory is not None else ''
-                ,'histogram.png'))
-    
-    def draw_circuit(self, save_cirq, image_type='mpl', file_directory = None):
-       '''Draw the last circuit.\n
-       Can save in directory'''
-       if self.current_circuit is None:
-            return None
-       (self.current_circuit.draw(image_type)).show()
-       if save_cirq:
-            plt.savefig(os.path.join(
-                file_directory if file_directory is not None else ''
-                ,''.join([self.current_circuit.name] + ['_draw.png'])))
+    def get_result_count(self):
+        '''get result count'''
+        return self.last_result['count']

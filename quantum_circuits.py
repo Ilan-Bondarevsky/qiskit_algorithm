@@ -1,9 +1,9 @@
 from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
-from bit_functions import full_bitfield
+from bit_functions import get_qubit_list
 
 def cnz(qubits, mode = 'noancilla'):
     '''Create a contorl not Z (cnz) circuit based on the number of qubits'''
-    qc = QuantumCircuit(QuantumRegister(qubits, 'qubit'))
+    qc = QuantumCircuit(QuantumRegister(qubits, 'cnz_q'))
     if qubits < 1:
         return None
     elif qubits == 1:
@@ -17,7 +17,7 @@ def cnz(qubits, mode = 'noancilla'):
             qc.h(qubits-1)
         else:
             ancilla = qubits - 2
-            qc.add_register(AncillaRegister(ancilla, 'ancilla'))
+            qc.add_register(AncillaRegister(ancilla, 'cnz_anc'))
             mid_q = (ancilla + qubits) // 2 - 1
             for i in range(ancilla):
                 qc.ccx(mid_q - i, mid_q + i + 1, mid_q + i + 2)
@@ -29,19 +29,13 @@ def cnz(qubits, mode = 'noancilla'):
     qc.name = "cnz " + str(qubits)
     return qc
 
-def index_data_cirq(index, value, index_qubits, value_qubits):
-    '''Create a circuit that create a connection between an index and a value in a circuit\n
-    Each index has a specific value.'''
-    qc = QuantumCircuit(QuantumRegister(index_qubits, 'index'), AncillaRegister(value_qubits, 'value'))
-    index_bit_field = full_bitfield(index, index_qubits)[::-1]
-    value_bit_field = full_bitfield(value, value_qubits)[::-1]
-
-    qc.x([i for i, _ in enumerate(index_bit_field) if not index_bit_field[i]])
-
-    for bit in [i for i, _ in enumerate(value_bit_field) if value_bit_field[i]]:
-        qc.mcx(list(range(len(index_bit_field))), qc.ancillas[bit])
-
-    qc.x([i for i, _ in enumerate(index_bit_field) if not index_bit_field[i]])
-    
-    qc.name = f"Index {index} : Value {value}"
-    return qc 
+def z_or(nqubits, mode='noancilla'):
+    cz = cnz(nqubits, mode)
+    qc = QuantumCircuit(cz.qubits)
+    qc.x(get_qubit_list(qc))
+    qc.barrier(qc.qubits)
+    qc = qc.compose(cz, qc.qubits)
+    qc.barrier(qc.qubits)
+    qc.x(get_qubit_list(qc))
+    qc.name = f"Zor {nqubits}"
+    return qc
