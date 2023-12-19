@@ -2,7 +2,6 @@ from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
 from quantum_circuits import cnz 
 import math
 
-from grover_oracle import num_oracle
 from bit_functions import get_qubit_list
 from quantum_operation import QuantumOperation
 
@@ -27,46 +26,24 @@ def diffuser(nqubits, mode='noancilla', worker_qubit=False):
     qc.name = f"Diffuser : {nqubits} qubits"
     return qc
 
-def h_prep(nqubits):
+def prep_search_qubits(nqubits, set_qubit_value = []):
+    '''Prepare the qubits with Hadamard gate OR set qubits with values based on their index and value.\n
+    set_value_list contains a list of tuples that contains (qubit_index , 0 or 1)'''
+
     qc = QuantumCircuit(nqubits)
-    qc.h(qc.qubits)
-    return qc
+    h_qubit = [h for h in range(nqubits) if h not in [value[0] for value in set_qubit_value]]
+    x_qubit = [value[0] for value in set_qubit_value if value[1]]
+
+    qc.x(x_qubit) if len(x_qubit) else None
+
+    qc.h(h_qubit)
+    return qc, len(h_qubit)
 
 def calculate_iteration(nqubits, num_solution = 1):
     size_N = pow(2, nqubits)
     if num_solution is None:
         num_solution = 1
     return math.floor((math.pi * math.sqrt(size_N / num_solution)) / 4)
-
-def simple_search_grover(winner_list, nqubits, mode = 'noancilla', block_diagram=False, worker_qubit=False):
-    max_list_value = pow(2, nqubits) - 1
-
-    if not check_solution_grover(solutions=len(winner_list), max_value=max_list_value):
-        raise MemoryError("To many solutions for Grover to work!")
-
-    oracle_qc = num_oracle(winner_list, max_list_value, mode, block_diagram, worker_qubit)
-
-    qc = QuantumCircuit(oracle_qc.qubits)
-    cur_qubits = get_qubit_list(qc)
-    qc = qc.compose(h_prep(nqubits), cur_qubits)
-    
-    diffuser_qc = diffuser(nqubits, mode=mode, worker_qubit=False)
-    qc.add_register(diffuser_qc.ancillas)
-
-    queries = calculate_iteration(nqubits, len(winner_list))
-    print(queries)
-    for _ in range(queries):
-        if block_diagram:
-            qc.append(oracle_qc.copy(), cur_qubits + list(oracle_qc.ancillas))
-            qc.append(diffuser_qc.copy(), cur_qubits + list(diffuser_qc.ancillas))
-        else:
-            qc.barrier(qc.qubits)
-            qc = qc.compose(oracle_qc.copy(), cur_qubits + list(oracle_qc.ancillas))
-            qc.barrier(qc.qubits)
-            qc = qc.compose(diffuser_qc.copy(), cur_qubits + list(diffuser_qc.ancillas))
-            qc.barrier(qc.qubits)
-    qc.name = "Grover Algo"
-    return qc
 
 def simulate_grover_qc_list(grover_qc_list, min_percent = 10, sum_percent = 70, shots = 1024, circuit_index = None, all_simulations = False):
     if circuit_index is not None:
@@ -96,3 +73,25 @@ def check_solution_grover(solutions, nqubits_size = None, max_value = None):
     if solutions * 2 >= max_v:
         return False
     return True
+
+def generate_grover_circuits_with_iterations(qc_after_prep, iteration_query, block_diagram=False):
+    qc_output = []  
+
+    query_qubits = get_qubit_list(iteration_query)
+    max_query = calculate_iteration(len(query_qubits), 1)
+
+    qc = QuantumCircuit(iteration_query.qubits)
+    qc = qc.compose(qc_after_prep, query_qubits)
+
+    for i in range(max_query):
+        if block_diagram:
+            qc.append(iteration_query, qc.qubits)
+        else:
+            qc.barrier(qc.qubits)
+            qc = qc.compose(iteration_query, qc.qubits)
+            qc.barrier(qc.qubits)
+        cur_qc = qc.copy()
+        cur_qc.name = f"Grover {i}"
+        qc_output.append(cur_qc)
+
+    return qc_output

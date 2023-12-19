@@ -1,11 +1,45 @@
 from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
 from bit_functions import full_bitfield, get_qubit_list
-from quantum_circuits import cnz, z_or
-from grover_cirq import diffuser, calculate_iteration, h_prep, simulate_grover_qc_list, check_solution_grover
-from grover_oracle import num_oracle
-import math
-from quantum_operation import QuantumOperation
-from qiskit.tools.visualization import plot_histogram
+from grover_cirq import diffuser, calculate_iteration, prep_search_qubits, check_solution_grover, generate_grover_circuits_with_iterations
+from quantum_circuits import cnz
+
+def num_oracle(winner_list, max_list_value, mode = 'noancilla', block_diagram=False, worker_qubit=False):
+    '''Create a circquit to reflect the qubits when the input is one of the winning numbers.\n
+    The max qubits is based on the max value given\n
+    Can return the CNZ circuit to be a gate block or shhow its full circuit using BLOCK_DIAGRAM'''
+    worker_anc = AncillaRegister(int(worker_qubit), 'worker_anc')
+    qc = QuantumCircuit(QuantumRegister(max_list_value.bit_length(), 'oracle_q'), worker_anc)
+
+    qubit_list = get_qubit_list(qc)
+
+    for index, num in enumerate(winner_list):
+        if num > max_list_value:
+            raise MemoryError("Winner value higher than max value!")
+        
+        qc.barrier(qc.qubits)
+        bit_list = full_bitfield(num, len(qubit_list))[::-1]
+        
+        neg_bit = [i for i,_ in enumerate(bit_list) if not bit_list[i]]
+        qc.x(neg_bit) if len(neg_bit) else None
+        if worker_qubit:
+            qc.mcx(qubit_list, worker_anc)
+        else:
+            qc_cnz = cnz(len(qubit_list), mode)
+            cnz_anc = AncillaRegister(len(qc_cnz.ancillas), f"cnz_anc_{index}")
+            qc.add_register(cnz_anc)
+            if block_diagram:
+                qc.append(qc_cnz, qubit_list + list(cnz_anc))
+            else:
+                qc.barrier(qc.qubits)
+                qc = qc.compose(qc_cnz, qubit_list + list(cnz_anc))   
+                qc.barrier(qc.qubits)
+    
+        qc.x(neg_bit) if len(neg_bit) else None
+        qc.barrier(qc.qubits)
+
+    qc.name = 'Oracle_Num ' + str(winner_list)
+    return qc
+
 #https://arxiv.org/pdf/1502.04943.pdf
 def index_data_cirq(index, value, index_qubits, value_qubits):
     '''Create a circuit that create a connection between an index and a value in a circuit\n
@@ -74,25 +108,52 @@ def grover_num_list(data_list, max_data_value, winner_list, solutions=None, mode
     if not check_solution_grover(solutions=solutions, max_value=len(data_list)):
         raise MemoryError("To many solutions for Grover to work!")
 
-    max_query = calculate_iteration(len(query_qubits), 1)
-    index_query = None if solutions is None else calculate_iteration(len(query_qubits), solutions) - 1
+    prep_qc, size_n = prep_search_qubits(len(query_qubits))
 
+    index_query = None if solutions is None else calculate_iteration(size_n, solutions) - 1
 
-    prep_qc = h_prep(len(query_qubits))
-
-    qc_output = []
-
-    qc = QuantumCircuit(qc_query.qubits)
-    qc = qc.compose(prep_qc, query_qubits)
-    for i in range(max_query):
-        if block_diagram:
-            qc.append(qc_query, qc.qubits)
-        else:
-            qc.barrier(qc.qubits)
-            qc = qc.compose(qc_query, qc.qubits)
-            qc.barrier(qc.qubits)
-        cur_qc = qc.copy()
-        cur_qc.name = f"Grover {i}"
-        qc_output.append(cur_qc)
+    qc_output = generate_grover_circuits_with_iterations(prep_qc, qc_query, block_diagram)
         
     return qc_output, index_query
+
+def simple_search_grover(winner_list, nqubits, mode = 'noancilla', block_diagram=False, worker_qubit=False):
+    max_list_value = pow(2, nqubits) - 1
+
+    if not check_solution_grover(solutions=len(winner_list), max_value=max_list_value):
+        raise MemoryError("To many solutions for Grover to work!")
+
+    oracle_qc = num_oracle(winner_list, max_list_value, mode, block_diagram, worker_qubit)
+    diffuser_qc = diffuser(nqubits, mode=mode, worker_qubit=False)
+
+    iteration_qc = QuantumCircuit(oracle_qc.qubits, diffuser_qc.ancillas)
+    cur_qubits = get_qubit_list(iteration_qc)
+    if block_diagram:
+        iteration_qc.append(oracle_qc.copy(), cur_qubits + list(oracle_qc.ancillas))
+        iteration_qc.append(diffuser_qc.copy(), cur_qubits + list(diffuser_qc.ancillas))
+    else:
+        iteration_qc.barrier(iteration_qc.qubits)
+        iteration_qc = iteration_qc.compose(oracle_qc.copy(), cur_qubits + list(oracle_qc.ancillas))
+        iteration_qc.barrier(iteration_qc.qubits)
+        iteration_qc = iteration_qc.compose(diffuser_qc.copy(), cur_qubits + list(diffuser_qc.ancillas))
+        iteration_qc.barrier(iteration_qc.qubits)
+
+    qc = QuantumCircuit(iteration_qc.qubits)
+    cur_qubits = get_qubit_list(qc)
+
+    prep_qc, size_n = prep_search_qubits(nqubits)
+
+    qc = qc.compose(prep_qc, cur_qubits)
+
+    queries = calculate_iteration(size_n, len(winner_list))
+
+    for i in range(queries):
+        cur_iteration = iteration_qc.copy()
+        cur_iteration.name = f"Iteration {i}"
+        if block_diagram:
+            qc.append(cur_iteration, qc.qubits)
+        else:
+            qc.barrier(qc.qubits)
+            qc = qc.compose(cur_iteration, qc.qubits)
+            qc.barrier(qc.qubits)
+    qc.name = "Grover Algo"
+    return qc
