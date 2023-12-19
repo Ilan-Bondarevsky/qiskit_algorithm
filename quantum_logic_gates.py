@@ -1,4 +1,4 @@
-from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister , Aer, execute, ClassicalRegister
+from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
 
 from itertools import combinations
 
