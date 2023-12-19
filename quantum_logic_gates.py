@@ -1,5 +1,7 @@
 from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
 
+from itertools import combinations
+
 def and_gate(a = 0 , b = 0):
     '''Create an AND gate in qiskit\n
     The values of "a" and "b" are inisializing the qubits, the values (0/1)'''
@@ -101,27 +103,20 @@ def nor_gate(a = 0 , b = 0):
     qc.x(qc.ancillas)
     return qc
 
-#def mor_gate(nqubits, values = []):
-#    '''Create an OR gate in qiskit with multiple qubits\n
-#    The values in the list are corresponding to the qubits, the values (0/1)'''
-#    qc = QuantumCircuit(QuantumRegister(nqubits), AncillaRegister(1))
-#    
-#    for i, val in enumerate(values):
-#        if val:
-#            qc.x(i)
-#    
-#    circuits = []
-#
-#    l = list(range(nqubits))
-#    for length in range(1, 1 + nqubits):
-#        for i in range(nqubits):
-#            x= l[i : i + 1]
-#            for j in range(i + 1, nqubits):
-#                cur_l = x + l[j : j + length - 1]
-#                circuits.append(cur_l) if cur_l not in circuits else None
-#            circuits.append(x) if x not in circuits else None
-#
-#    for circ in circuits:
-#        qc.mcx(circ, qc.ancillas)
-#
-#    return qc
+def mor_gate(nqubits, values = []):
+    '''Create an OR gate in qiskit with multiple qubits\n
+    The values in the list are corresponding to the qubits, the values (0/1)'''
+    qc = QuantumCircuit(QuantumRegister(nqubits), AncillaRegister(1))
+    
+    for i, val in enumerate(values):
+        if val:
+            qc.x(i)
+    
+    or_cirq = []
+    for i in range(1, nqubits + 1):
+        or_cirq = or_cirq + list(combinations(list(range(nqubits)), i))
+
+    for circ in or_cirq:
+        qc.mcx(list(circ), qc.ancillas)
+
+    return qc
