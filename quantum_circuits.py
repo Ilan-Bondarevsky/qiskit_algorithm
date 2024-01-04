@@ -1,15 +1,21 @@
 from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
-from bit_functions import get_qubit_list
 
-def cnz(qubits, mode = 'noancilla'):
-    '''Create a contorl not Z (cnz) circuit based on the number of qubits'''
+def cnz(qubits, set_qubit_value = [], mode = 'noancilla'):
+    '''Create a contorl not Z (cnz) circuit based on the number of qubits.\n
+    Preparing the qubits values using a tuple (qubit_index , 0 or 1)'''
     qc = QuantumCircuit(QuantumRegister(qubits, 'cnz_q'))
+
+    zero_qubit = [value[0] for value in set_qubit_value if not value[1] and value[0] < qubits]
+
     if qubits < 1:
         return None
-    elif qubits == 1:
-        qc.z(qubits-1)
+    
+    qc.x(zero_qubit) if len(zero_qubit) else None
+    qc.barrier(qc.qubits)
+    if qubits == 1:
+        qc.z(qc.qubits[0])
     elif qubits == 2:
-        qc.cz(qubits-2, qubits-1)
+        qc.cz(qc.qubits[0], qc.qubits[1])
     else:
         if mode == 'noancilla':
             qc.h(qubits-1)
@@ -26,16 +32,8 @@ def cnz(qubits, mode = 'noancilla'):
 
             for i in list(range(ancilla))[::-1]:
                 qc.ccx(mid_q - i, mid_q + i + 1, mid_q + i + 2)
-    qc.name = "cnz " + str(qubits)
-    return qc
+    qc.barrier(qc.qubits)
+    qc.x(zero_qubit) if len(zero_qubit) else None
 
-def z_or(nqubits, mode='noancilla'):
-    cz = cnz(nqubits, mode)
-    qc = QuantumCircuit(cz.qubits)
-    qc.x(get_qubit_list(qc))
-    qc.barrier(qc.qubits)
-    qc = qc.compose(cz, qc.qubits)
-    qc.barrier(qc.qubits)
-    qc.x(get_qubit_list(qc))
-    qc.name = f"Zor {nqubits}"
+    qc.name = f"cnz {qubits}"
     return qc
