@@ -9,33 +9,31 @@ class QuantumOperation:
     def set_circuit(self, quantum_circuit):
        self.circuit = quantum_circuit
 
-    def __run_backend(self, backend = 'aer_simulator', **kwargs):
+    def __run_backend(self, backend_simulator = 'aer_simulator', shots = 1024):
         '''Run current circuit on a given backend'''
         if self.circuit is None:
             return None
-        backend = Aer.get_backend(backend)
-        job = execute(self.circuit, backend, *kwargs)
-        return job
+        result = execute(self.circuit, backend=Aer.get_backend(backend_simulator), shots = shots).result()
+        return result
 
-    def get_unitary(self, decimals=3, **kwargs):
+    def get_unitary(self, decimals=3):
         '''Get unitary matrix of current circuit'''
-        result = self.__run_backend(backend='unitary_simulator', *kwargs).result()
+        result = self.__run_backend('unitary_simulator')
         return result.get_unitary(self.circuit, decimals)
     
-    def get_state_vector(self, **kwargs):
+    def get_state_vector(self):
         '''Get state vector of current circuit'''
-        result = self.__run_backend(backend='statevector_simulator', *kwargs).result()
+        result = self.__run_backend('statevector_simulator')
         return result.get_statevector(self.circuit)
     
-    def run_circuit(self, simulation_backend = 'aer_simulator', shots = 1024, **kwargs):
+    def run_circuit(self, simulation_backend = 'aer_simulator', shots = 1024):
         '''Run current circuit on a simulation backend.\n
         Note: Need classical bits for measurements for the simulation'''
         if self.circuit is None:
             return None
         if not len(self.circuit.clbits):
             return None
-        
-        result = self.__run_backend(simulation_backend, shots = shots, *kwargs).result()
+        result = self.__run_backend(simulation_backend, shots = shots)
         return result
 
     def get_fake_backend(self, backend_name=None, min_qubit=None, max_qubit = None):

@@ -1,9 +1,105 @@
-from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
+from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister, ClassicalRegister
 from quantum_circuits import cnz 
 import math
 
 from bit_functions import get_qubit_list
 from quantum_operation import QuantumOperation
+
+from abc import ABC, abstractmethod
+
+
+class grover_circuit(ABC):
+    def oracle(self, nqubits, mode = 'noancilla'):
+        return cnz(nqubits, mode=mode)
+    
+    def diffuser(self, nqubits, mode='noancilla'):
+        cnz_cirq = cnz(nqubits, mode)
+        qc = QuantumCircuit(cnz_cirq.qubits)
+        
+        qc.h(get_qubit_list(qc))
+        qc.x(get_qubit_list(qc))
+        qc.barrier(qc.qubits)
+        qc = qc.compose(cnz_cirq, cnz_cirq.qubits)
+        qc.barrier(qc.qubits)
+        qc.x(get_qubit_list(qc))
+        qc.h(get_qubit_list(qc))
+        qc.name = f'Diffuser {nqubits}Q'
+
+        return qc
+    
+    def prep_qubits(self, nqubits, prep_value = []):
+        qc = QuantumCircuit(nqubits)
+
+        one_qubit = [index[0] for index in prep_value if index[1] and index[0] < nqubits]
+        qc.x(one_qubit) if len(one_qubit) else None
+
+        h_qubit = [index for index in range(nqubits) if index not in [i[0] for i in prep_value]]
+        qc.h(h_qubit) if len(h_qubit) else None
+
+        world_size = len(h_qubit)
+        qc.name = 'Prep Qubit'
+        return qc, world_size
+    
+    def calculate_iterations(self, qubit_world, solutions = 1):
+        size_N = pow(2, qubit_world)
+        if solutions is not None and solutions:
+            if size_N < solutions * 2:
+                return None
+            return [math.floor((math.pi * math.sqrt(size_N / solutions)) / 4)]
+        return list(range(1, math.floor((math.pi * math.sqrt(size_N)) / 4) + 1))
+
+    def create_grover_circuit_with_iter(self, iteration_qc, solutions = 1, prep_value = [], block_diagram = True):
+        qubits = get_qubit_list(iteration_qc)
+        prep_qc, world_qubit_size = self.prep_qubits(len(qubits), prep_value=prep_value)
+
+        iterations = self.calculate_iterations(world_qubit_size, solutions)
+        if iterations is None:
+            return None
+
+        grover_experiments = []
+        for i in iterations:
+            qc = QuantumCircuit(iteration_qc.qubits)
+            if block_diagram:
+                qc.append(prep_qc, qubits)
+                [qc.append(iteration_qc.copy(), qc.qubits) for _ in range(i)]
+            else:
+                qc = qc.compose(prep_qc, qubits)
+                for _ in range(i):
+                    qc.barrier(qc.qubits)
+                    qc = qc.compose(iteration_qc.copy(), qc.qubits)
+                
+            grover_experiments.append(qc)
+
+            
+            
+        return grover_experiments
+           
+    def add_qubit_measurement(self, circuit):
+        qc = circuit.copy()
+        qubits = get_qubit_list(qc)
+
+        qc.add_register(ClassicalRegister(len(qubits)))
+        qc.measure(qubits, qc.clbits)
+        return qc
+
+    @abstractmethod
+    def calculation_data_circuit(self, nqubits):
+        pass
+    
+    @abstractmethod
+    def create_iteration(self):
+        pass
+
+    @abstractmethod
+    def create_grover(self):
+        pass
+
+
+
+
+
+
+
 
 def diffuser(nqubits, mode='noancilla'):
     qc = QuantumCircuit(QuantumRegister(nqubits))
