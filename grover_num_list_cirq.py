@@ -1,8 +1,7 @@
 from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister, transpile
 from bit_functions import full_bitfield, get_qubit_list
 from grover_cirq import diffuser, check_solution_grover, generate_grover_circuits_with_iterations
-from quantum_circuits import cnz
-from quantum_operation import QuantumOperation
+from circuits import cnz
 
 from grover_cirq import grover_circuit
 
@@ -32,6 +31,7 @@ class find_num(grover_circuit):
 
         for winner in set(winner_list):
             win_qc = self.calculation_data_circuit(nqubits=nqubits, winner=winner)
+            oracle_qc = self.oracle(nqubits, [])
             if block_diagram:
                 qc_output.append(win_qc, qubits)
 
@@ -126,7 +126,7 @@ class search_index_list(grover_circuit):
 
         return qc_output
 
-    def create_grover(self, data_array, winner_list, num_solution = None, block_diagram=True):
+    def build_grover_iteration_data(self, data_array, winner_list, num_solution = None, block_diagram=True):
         iter_qc = self.create_iteration(data_array=data_array, winner_list = winner_list, block_diagram=block_diagram)
         return self.create_grover_circuit_with_iter(iter_qc, solutions = num_solution, block_diagram=block_diagram)
 
@@ -153,3 +153,10 @@ class search_index_list(grover_circuit):
         
         zero_value = [i for i, val in enumerate(bit_list) if not val]
         return zero_value
+    
+
+
+x = full_bitfield(2, 5)[::-1]
+print(x)
+y = [not i for i in x]
+print(y)

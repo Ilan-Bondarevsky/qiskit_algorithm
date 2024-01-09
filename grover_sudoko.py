@@ -1,10 +1,9 @@
 from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister, ClassicalRegister, Aer, execute
 from bit_functions import full_bitfield, get_qubit_list
 from grover_cirq import diffuser, calculate_iteration, prep_qubits_circuit, check_solution_grover, generate_grover_circuits_with_iterations, simulate_grover_qc_list
-from quantum_circuits import cnz
-from quantum_logic_gates import and_gate, or_gate, xor_gate, xnor_gate, nand_gate, nor_gate, mor_gate, mand_gate
+from circuits import cnz
+from logic_gate_circuits import and_gate, or_gate, xor_gate, xnor_gate, nand_gate, nor_gate, mor_gate, mand_gate
 from grover_cirq import diffuser
-from quantum_operation import QuantumOperation
 
 def check_same_num(num_qubit = None, max_num_value = None):
     '''Returns a circuit that sets the last ancilla qubit (Answer) if the numbers are the same'''
@@ -155,16 +154,3 @@ def check_under_nine(nqubits):
 
     qc.name = "Check_under_nine"
     return qc
-
-#x, y =create_sudoko_circuits(4)
-#print(x)
-#print(x)
-#print(y)
-
-#print(simulate_grover_qc_list(x, y))
-
-#z = QuantumOperation()
-#print(x[-1].draw())
-#z.set_circuit(x[y])
-#print(z.get_circuit())
-#print(z.run_circuit())
