@@ -1,3 +1,6 @@
+def bit_length(num):
+    return len(bin(num)[2:])
+
 def bitfield(num):
     '''Return a bit field of the given integer number'''
     return [int(digit) for digit in bin(num)[2:]] # [2:] to chop off the "0b" part
