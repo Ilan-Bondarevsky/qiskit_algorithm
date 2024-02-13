@@ -85,7 +85,7 @@ class grover_circuit(ABC):
                     qc.barrier(qc.qubits)
                     qc = qc.compose(self.iteration_qc, qc.qubits)
                 qc.barrier(qc.qubits)
-            qc.name = f"Iteration {i}"
+            qc.name = f"{self.iteration_qc.name} : Iteration {i}"
             grover_experiments.append(qc)   
 
         self.circuit = grover_experiments

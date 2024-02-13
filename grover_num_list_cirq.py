@@ -113,5 +113,5 @@ class find_num(grover_circuit):
             qc = qc.compose(diffuser_qc, qubits + list(diffuser_qc.ancillas))
             qc.barrier(qc.qubits)
 
-        qc.name = "Grover_Iteration"
+        qc.name = "Grover_Find_Num_Iteration"
         self.iteration_qc = qc
