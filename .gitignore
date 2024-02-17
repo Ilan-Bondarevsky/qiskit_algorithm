@@ -164,3 +164,4 @@ cython_debug/
 *.png
 
 tempCodeRunnerFile.py
+shor_algorithm/shor_circuir.txt
