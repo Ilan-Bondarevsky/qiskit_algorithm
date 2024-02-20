@@ -50,6 +50,32 @@ def subtracter(n):
     qc.name = f"SUB_{n}"
     return qc
 
+def adder_classic_a(n, a, kind = "fixed"): #n is the number of qubits requer for one number
+    qc = QuantumCircuit(QuantumRegister(n + (1 if kind == "half" else 0)))
+    bit_field_a = bit_functions.full_bitfield(a, n)
+
+    for j in range(n):
+        if bit_field_a[n-1-j] == 1:
+            for k in range(j, n):
+                power = k - j + 1
+                angle = 2*np.pi / (2**power) # k starts from 0 but in the article in start from 1
+                qc.p(angle, k)
+        # qc.barrier()
+
+    if kind == "half":
+        for i in range(n):
+            if bit_field_a[n-1-i] == 1:
+                angle = 2*np.pi / (2**(n-i+1))
+                qc.p(angle, n)
+    qc.name = f"ɸ ADD_{a}"
+    return qc
+
+def subtracter_classic_a(n, a):
+    qc = adder_classic_a(n, a, "half").inverse()
+    qc.name = f"ɸ SUB_{n}"
+    return qc
+
+
 def qft(n, swap = True):
     """n-qubit QFT the first n qubits in circ"""
     qc = QuantumCircuit(n)
@@ -79,8 +105,6 @@ def qft_dagger(n, swap = True):
         qc.h(j)
     qc.name = "QFT†"
     return qc
-
-
 
 
 
