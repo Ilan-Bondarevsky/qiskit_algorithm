@@ -138,16 +138,16 @@ def add_mod_n(a, N):
 
 def c_mult_a_mod_n(a, N):
     n = bit_functions.bit_length(N)
-    qr = QuantumRegister(2*n+3)
+    qr = QuantumRegister(2*n+4)
     qc = QuantumCircuit(qr)
 
-    qc.append(qft(n+1, False), range(n+1, 2*n+2))
+    qc.append(qft(n+1, False), range(n+2, 2*n+3))
 
     for i in range(n):
         number = (a * 2**i)%N
-        qc.append(add_mod_n(number, N), [0, i+1] + list(range(n+1, 2*n+3)))
+        qc.append(add_mod_n(number, N), [0, i+1] + list(range(n+2, 2*n+4)))
 
-    qc.append(qft_dagger(n+1, False), range(n+1, 2*n+2))
+    qc.append(qft_dagger(n+1, False), range(n+2, 2*n+3))
     qc.name = f"CMULT({a}) mod {N}"
     return qc
 
@@ -158,15 +158,24 @@ def inverse_c_mult_a_mod_n(a, N):
 
 def U(a, N):
     n = bit_functions.bit_length(N)
-    qc = QuantumCircuit(2*n + 3)
-    qc.append(c_mult_a_mod_n(a, N), range(2*n + 3))
-    #TODO swap
+    qc = QuantumCircuit(2*n + 4)
+    qc.append(c_mult_a_mod_n(a, N), range(2*n + 4))
     
+    qc.barrier()
+    
+    for i in range(1, n+2):
+        qc.cswap(0, i, i+n+1, label=f'{i} to {i+n}')
+
+        qc.barrier()
 
     if np.gcd(a, N) != 1:
         raise ArithmeticError(f"inverse of {a} mod {N} doesn't exists")
     i_a = pow(a, -1, N)
-    qc.append(inverse_c_mult_a_mod_n(i_a, N), range(2*n+3))
+    qc.append(inverse_c_mult_a_mod_n(i_a, N), range(2*n+4))
+
+
+    qc.name = f"U{a}"
+    return qc
 
 if __name__ == "__main__":
 
