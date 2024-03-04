@@ -10,6 +10,7 @@ def full_bitfield(num, max_size=None):
     val = bitfield(num)
     max_size = len(val) if max_size is None else max_size
     if max_size < len(val):
+        print(f"{max_size = }, {val = }, {len(val) = }")
         raise MemoryError("Out of bound memory")
     return [0] * (max_size - len(val)) + val
 
