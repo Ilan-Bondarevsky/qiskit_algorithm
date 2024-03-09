@@ -10,6 +10,7 @@ class sudoko_grover(grover_circuit):
     def __init__(self, max_num : int = 4):
         super().__init__()
         self.max_num = max_num
+        self.min_num = 1
         self.max_num_circuit = None
 
     def same_num_cirq(self):
@@ -20,15 +21,13 @@ class sudoko_grover(grover_circuit):
         anc = AncillaRegister(bit + 1)
         qc = QuantumCircuit(qubit_A, qubit_B, anc)
 
-        qc.x(0)
-        qc.x(4)
         for i in range(bit):
-            xor_qc = xnor_gate()
-            qc = qc.compose(xor_qc, [qubit_A[i], qubit_B[i], anc[i]])
+            xnor_qc = xnor_gate()
+            qc = qc.compose(xnor_qc, [qubit_A[i], qubit_B[i], anc[i]])
+            
+        inv_qc = qc.inverse() 
         qc.mcx(anc[:-1], anc[-1])
-        #for i in range(bit):
-        #    xor_qc = xor_gate()
-        #    qc = qc.compose(xor_qc, [qubit_A[i], qubit_B[i], anc[i]])
+        qc = qc.compose(inv_qc, list(qubit_A) + list(qubit_B) + list(anc))
 
         return qc
 
@@ -40,10 +39,12 @@ class sudoko_grover(grover_circuit):
         pass
 
 
-x = sudoko_grover(10)
-z = x.same_num_cirq()
-z.add_register(ClassicalRegister(1))
-z.measure(z.qubits[-1], 0)
-print(z)
-y = run_simulator(z)
-print(y.get_counts())
+if __name__ == "__main__":
+    x =  sudoko_grover()
+    y=x.same_num_cirq()
+
+    print(y.draw())
+    y.add_register(ClassicalRegister(1))
+    y.measure(y.qubits[-1],y.clbits[-1])
+    print(y.draw())
+    print(run_simulator(y).get_counts())

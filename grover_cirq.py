@@ -16,7 +16,7 @@ class grover_circuit(ABC):
         self.measure_qc = None
     
     @staticmethod
-    def oracle(nqubits, set_change_value=[], mode = 'noancilla'):
+    def oracle(nqubits: int, set_change_value : list=[], mode:str = 'noancilla')->QuantumCircuit:
         '''Building an oracle giving the value of the qubits to go into the oracle.\n
         Each element of the list is a tuple with the index of the qubit and its value = (index, value)'''
         cnz_qc = cnz(nqubits, mode=mode)
@@ -35,7 +35,7 @@ class grover_circuit(ABC):
         return qc
     
     @staticmethod
-    def diffuser(nqubits, mode='noancilla'):
+    def diffuser(nqubits:int, mode : str='noancilla') ->QuantumCircuit:
         cnz_cirq = cnz(nqubits, mode)
         qc = QuantumCircuit(cnz_cirq.qubits)
         
@@ -50,14 +50,14 @@ class grover_circuit(ABC):
 
         return qc
     
-    def __prep_qubits(self, nqubits, prep_value = []):
+    def __prep_qubits(self, nqubits : int, prep_value : list = []) -> tuple[QuantumCircuit, int]:
         '''Prepare the qubits value and returns the circuit and the size of the "world", the amount of hadamard gates on the qubits'''
         qc = set_value_circuit(nqubits, qubit_value_list=prep_value, rest_hadamard=True)
         qc.name = 'Prep Qubit'
         return qc, dict(qc.count_ops())['h']
     
     @staticmethod
-    def calculate_iterations(qubit_world, solutions = 1):
+    def calculate_iterations(qubit_world : int, solutions : int = 1) -> None:
         size_N = pow(2, qubit_world)
         if solutions is not None and solutions:
             if size_N < solutions * 2:
@@ -65,7 +65,7 @@ class grover_circuit(ABC):
             return [math.floor((math.pi * math.sqrt(size_N / solutions)) / 4)]
         return list(range(1, math.floor((math.pi * math.sqrt(size_N)) / 4) + 1))
 
-    def create_grover(self, solutions = 1, prep_value = [], block_diagram = True):
+    def create_grover(self, solutions : int = 1, prep_value : list = [], block_diagram : bool = True) -> None:
         if self.iteration_qc is None:
             raise Exception("Iteration circuit not found!")
         qubits = get_qubit_list(self.iteration_qc)
@@ -82,16 +82,18 @@ class grover_circuit(ABC):
             else:
                 qc = qc.compose(prep_qc, qubits)
                 for _ in range(i):
-                    qc.barrier(qc.qubits)
                     qc = qc.compose(self.iteration_qc, qc.qubits)
-                qc.barrier(qc.qubits)
+
             qc.name = f"{self.iteration_qc.name} : Iteration {i}"
             grover_experiments.append(qc)   
 
         self.circuit = grover_experiments
         self.__add_qubit_measurement()
            
-    def __add_qubit_measurement(self):
+    def __add_qubit_measurement(self) -> None:
+        '''
+        Measure the qubits of the circuits
+        '''
         if self.circuit is None:
             raise Exception("Circuit not found!")
         self.measure_qc = []
