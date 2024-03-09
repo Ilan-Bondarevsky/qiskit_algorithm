@@ -34,9 +34,8 @@ def adder(n, kind = "fixed"): #n is the number of qubits requer for one number
     for j in range(n):
         for k in range(j, n):
             power = k - j + 1
-            angle = 2*np.pi / (2**power) # k starts from 0 but in the article in start from 1
+            angle = 2*np.pi / (2**power)
             qc.cp(angle, j, n+k, label=str(power))
-        # qc.barrier()
 
     if kind == "half":
         for i in range(n):
@@ -60,7 +59,6 @@ def adder_classic_a(n, a, kind = "fixed"): #n is the number of qubits requer for
                 power = k - j + 1
                 angle = 2*np.pi / (2**power) # k starts from 0 but in the article in start from 1
                 qc.p(angle, k)
-        # qc.barrier()
 
     if kind == "half":
         for i in range(n):
@@ -84,7 +82,7 @@ def qft(n, swap = True):
         qc.h(j)
         for m in range(j-1, -1, -1):
             qc.cp(np.pi/float(2**(j-m)), j, m, label=f"{j-m+1}")
-        # qc.barrier()
+        
     # Don't forget the Swaps!
     if swap:
         for qubit in range(n//2):
@@ -162,18 +160,13 @@ def U(N, a, power):
     qc = QuantumCircuit(2*n + 4)
     qc.append(c_mult_a_mod_n(a_pow, N), range(2*n + 4))
     
-    qc.barrier()
-    
     for i in range(1, n+2):
         qc.cswap(0, i, i+n+1, label=f'{i} to {i+n}')
-
-        qc.barrier()
 
     if np.gcd(a_pow, N) != 1:
         raise ArithmeticError(f"inverse of {a}^{power} mod {N} doesn't exists")
     i_a = pow(a_pow, -1, N)
     qc.append(inverse_c_mult_a_mod_n(i_a, N), range(2*n+4))
-
 
     qc.name = f"U{a}^{power} mod {N}"
     return qc
