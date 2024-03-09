@@ -156,10 +156,11 @@ def inverse_c_mult_a_mod_n(a, N):
     qc.name = f"CMULT({a}) mod {N}†"
     return qc
 
-def U(a, N):
+def U(N, a, power):
+    a_pow = a**power
     n = bit_functions.bit_length(N)
     qc = QuantumCircuit(2*n + 4)
-    qc.append(c_mult_a_mod_n(a, N), range(2*n + 4))
+    qc.append(c_mult_a_mod_n(a_pow, N), range(2*n + 4))
     
     qc.barrier()
     
@@ -168,18 +169,34 @@ def U(a, N):
 
         qc.barrier()
 
-    if np.gcd(a, N) != 1:
-        raise ArithmeticError(f"inverse of {a} mod {N} doesn't exists")
-    i_a = pow(a, -1, N)
+    if np.gcd(a_pow, N) != 1:
+        raise ArithmeticError(f"inverse of {a}^{power} mod {N} doesn't exists")
+    i_a = pow(a_pow, -1, N)
     qc.append(inverse_c_mult_a_mod_n(i_a, N), range(2*n+4))
 
 
-    qc.name = f"U{a}"
+    qc.name = f"U{a}^{power} mod {N}"
+    return qc
+
+def shor_circiut(N, a):
+    n = bit_functions.bit_length(N)
+
+    qc = QuantumCircuit(4*n+3, 2*n)
+
+    qc.h(range(2*n))
+    qc.x(2*n)
+
+    for i in range(2*n):
+        qc.append(U(N,a,2**i), [i] + list(range(2*n, 4*n+3)))
+
+    qc.append(qft_dagger(2*n, True), range(2*n))
+    qc.measure(range(2*n), range(2*n))
+
     return qc
 
 if __name__ == "__main__":
 
-    qc = c_mult_a_mod_n(3, 15)
+    qc = shor_circiut(15,4)
 
     print(qc.draw())
 
