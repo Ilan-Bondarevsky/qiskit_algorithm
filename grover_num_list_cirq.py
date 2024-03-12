@@ -39,12 +39,13 @@ class find_num(grover_circuit):
     def build_iteration(self, winner_num_list : list = [], circuit_nqubits : int = 0, block_diagram=True) -> None:
         '''
         Build the iteration for the Grover circuit for the winner list
-        :param circuit_nqubits = the minimum qubits the circuit will ahve (max between the needed and the nqubits given)
+        :param circuit_nqubits = The number of qubits in the circuits (Minimum the vnumber needed for max value in the winner list)
         '''
         if not len(winner_num_list):
             raise Exception("Winner list is empty!")
-        
-        qc = find_num.series_num_oracle(max(len(full_bitfield(max(winner_num_list))), circuit_nqubits), winner_num_list, block_diagram)
+        max_winner_qubit_needed = len(full_bitfield(max(winner_num_list)))
+        circuit_nqubits = max(max_winner_qubit_needed, circuit_nqubits)
+        qc = find_num.series_num_oracle(circuit_nqubits, winner_num_list, block_diagram)
         
         qubits = get_qubit_list(qc)
         diffuser_qc = grover_circuit.diffuser(len(qubits))
@@ -151,7 +152,7 @@ class find_num_list(grover_circuit):
         self.iteration_qc = qc
 
 if __name__ == "__main__":
-    x =  find_num_list()
-    x.build_iteration([0,2], [1,2,0,1,1,1,0,1], block_diagram=True)
-    x.create_grover(solutions=2,block_diagram=False)
-    print(x.measure_qc[0])
+    x =  find_num()
+    x.build_iteration([5], 4, block_diagram=True)
+    x.create_grover(solutions=1,block_diagram=False)
+    print(x.measure_qc[0].draw())
