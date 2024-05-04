@@ -1,7 +1,7 @@
 from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
 from bit_functions import full_bitfield, get_qubit_list
 
-from grover_cirq import grover_circuit
+from Grover.grover_cirq import grover_circuit
 
 class find_num(grover_circuit):
     def __init__(self):
@@ -41,6 +41,8 @@ class find_num(grover_circuit):
         Build the iteration for the Grover circuit for the winner list
         :param circuit_nqubits = The number of qubits in the circuits (Minimum the vnumber needed for max value in the winner list)
         '''
+        if not isinstance(winner_num_list,list):
+            winner_num_list = [winner_num_list]
         if not len(winner_num_list):
             raise Exception("Winner list is empty!")
         max_winner_qubit_needed = len(full_bitfield(max(winner_num_list)))
@@ -154,5 +156,5 @@ class find_num_list(grover_circuit):
 if __name__ == "__main__":
     x =  find_num()
     x.build_iteration([5], 4, block_diagram=True)
-    x.create_grover(solutions=1,block_diagram=False)
+    x.create_grover(num_solutions=1,block_diagram=False)
     print(x.measure_qc[0].draw())

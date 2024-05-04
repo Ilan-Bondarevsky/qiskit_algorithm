@@ -57,21 +57,21 @@ class grover_circuit(ABC):
         return qc, dict(qc.count_ops())['h']
     
     @staticmethod
-    def calculate_iterations(qubit_world : int, solutions : int = 1) -> None:
+    def calculate_iterations(qubit_world : int, num_solutions : int = 1) -> None:
         size_N = pow(2, qubit_world)
-        if solutions is not None and solutions:
-            if size_N < solutions * 2:
+        if num_solutions is not None and num_solutions:
+            if size_N < num_solutions * 2:
                 raise Exception("Grover won't work properly! To many solutions!")
-            return [math.floor((math.pi * math.sqrt(size_N / solutions)) / 4)]
+            return [math.floor((math.pi * math.sqrt(size_N / num_solutions)) / 4)]
         return list(range(1, math.floor((math.pi * math.sqrt(size_N)) / 4) + 1))
 
-    def create_grover(self, solutions : int = 1, prep_value : list = [], block_diagram : bool = True) -> None:
+    def create_grover(self, num_solutions : int = 1, prep_value : list = [], block_diagram : bool = True) -> None:
         if self.iteration_qc is None:
             raise Exception("Iteration circuit not found!")
         qubits = get_qubit_list(self.iteration_qc)
         prep_qc, world_qubit_size = self.__prep_qubits(len(qubits), prep_value)
 
-        iterations = grover_circuit.calculate_iterations(world_qubit_size, solutions)
+        iterations = grover_circuit.calculate_iterations(world_qubit_size, num_solutions)
 
         grover_experiments = []
         for i in iterations:
