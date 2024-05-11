@@ -1,4 +1,7 @@
-from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
+import sys
+sys.path.append('')
+from quantum_circuit import QuantumCircuit
+from qiskit import QuantumRegister, AncillaRegister
 from bit_functions import full_bitfield, get_qubit_list
 
 from Grover.grover_cirq import grover_circuit

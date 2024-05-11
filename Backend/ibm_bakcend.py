@@ -1,8 +1,11 @@
+import sys
+sys.path.append('')
+from quantum_circuit import QuantumCircuit
 from qiskit.transpiler import CouplingMap
-from backend import BACKEND
+from backend import Backend
 from qiskit_ibm_provider import IBMProvider
 
-class IBM_backend(BACKEND):
+class IBM_backend(Backend):
     def __init__(self, api_token : str = '', save_token_locally : bool = False) -> None:
         if save_token_locally:
             IBMProvider.save_account(token=api_token)

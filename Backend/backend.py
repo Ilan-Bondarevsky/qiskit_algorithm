@@ -1,9 +1,12 @@
-from qiskit import transpile, QuantumCircuit
+import sys
+sys.path.append('')
+from quantum_circuit import QuantumCircuit
+from qiskit import transpile as qiskit_transpiler
 from qiskit.providers.fake_provider import GenericBackendV2
 from qiskit.transpiler import CouplingMap
 
 
-class BACKEND():
+class Backend():
     def __init__(self, num_qubits : int = 1, coupling_map : list[list[int]] | CouplingMap | None = None) -> None:
         self.backend = GenericBackendV2(num_qubits=num_qubits, coupling_map=coupling_map)
         self.num_qubits = num_qubits
@@ -21,7 +24,7 @@ class BACKEND():
         for qc in list_qc:
             for level in optimization_level:
                 for layout in initial_layout:
-                    cur_qc = transpile(circuits=qc, backend=self.backend, optimization_level=level, initial_layout=layout)
+                    cur_qc = qiskit_transpiler(circuits=qc, backend=self.backend, optimization_level=level, initial_layout=layout)
                     transpiled_qc_list.append(cur_qc) 
                     transpiled_qc_list[-1].name = f"{self.backend.name} | {layout} | {level}" 
         return transpiled_qc_list
@@ -36,7 +39,7 @@ class BACKEND():
         return self.backend.run(qc, shots=shots)
 
 if __name__ == "__main__":
-    backend = BACKEND(3)
+    backend = Backend(3)
     qc = QuantumCircuit(2)
     qc.x(0)
     qc.h(1)

@@ -1,13 +1,15 @@
-import qiskit.providers.fake_provider
+import sys
+sys.path.append('')
+from quantum_circuit import QuantumCircuit
+# import qiskit.providers.fake_provider
 from qiskit.transpiler import CouplingMap
 import qiskit_ibm_runtime.fake_provider
-from backend import BACKEND
-from qiskit import QuantumCircuit
+from backend import Backend
 
-class FakeBackend(BACKEND):
+class FakeBackend(Backend):
     def __init__(self, backend_name : str) -> None:
         self.backend = FakeBackend.get_ibm_fake_backend(backend_name=backend_name)
-            
+    
     @staticmethod
     def get_ibm_fake_backend_name_list() -> list[str]:
         ibm_dir = dir(qiskit_ibm_runtime.fake_provider)
@@ -29,7 +31,7 @@ class FakeBackend(BACKEND):
         return None
     
     @staticmethod
-    def get_ibm_fake_backend_names_with_limit(min_qubit : int = 1, max_qubit: int = 1500) -> list[str]:
+    def get_ibm_fake_backend_names_with_limit(min_qubit : int = 1, max_qubit: int = float('inf')) -> list[str]:
         limited_backend = []
         fake_backend_name = FakeBackend.get_ibm_fake_backend_name_list()
         for backend in fake_backend_name:

@@ -1,4 +1,8 @@
-from qiskit import QuantumCircuit, ClassicalRegister
+import sys
+sys.path.append('')
+from qiskit import ClassicalRegister
+from quantum_circuit import QuantumCircuit
+
 import math
 
 from bit_functions import get_qubit_list
