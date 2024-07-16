@@ -1,5 +1,7 @@
 import sys
-sys.path.append('')
+import os
+current_dir = os.getcwd()
+sys.path.append(current_dir)
 from qiskit import ClassicalRegister
 from quantum_circuit import QuantumCircuit
 

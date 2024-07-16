@@ -1,7 +1,8 @@
-from qiskit import QuantumCircuit as QuantumCircuit_Original
+from qiskit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit.quantum_info import Operator, Statevector, DensityMatrix, StabilizerState
+from qiskit import QuantumCircuit, AncillaRegister, ClassicalRegister, QuantumRegister
 
-class QuantumCircuit(QuantumCircuit_Original):
+class QuantumCircuit(QiskitQuantumCircuit):
     def get_unitary_matrix(self, input_dims=None, output_dims=None):
         return Operator(self, input_dims, output_dims).data
     
@@ -13,6 +14,16 @@ class QuantumCircuit(QuantumCircuit_Original):
     
     def get_stabilizer_state(self, validate: bool = True):
         return StabilizerState(self, validate)
+    
+    @staticmethod
+    def from_qiskit_circuit(qiskit_circuit : QiskitQuantumCircuit):
+        custom_circuit = QuantumCircuit(qiskit_circuit.qubits)
+        custom_circuit.add_register(qiskit_circuit.clbits)
+        
+        custom_circuit.data = qiskit_circuit.data.copy()  # Copy the operations
+        custom_circuit.global_phase = qiskit_circuit.global_phase  # Copy the global phase
+        custom_circuit.metadata = qiskit_circuit.metadata  # Copy the metadata if any
+        return custom_circuit
 
 
 if __name__ == "__main__":
@@ -23,6 +34,11 @@ if __name__ == "__main__":
         print(f"### Function : {func.__name__} ###")
         print(func())
         print()
+        
+    qc = QiskitQuantumCircuit(5)
+    print(qc.draw())
+    qc = QuantumCircuit.from_qiskit_circuit(qc)
+    print(qc.draw())
     # print(qc.draw())
     # print(qc.get_unitary_matrix())
     # print(qc.get_density_matrix())

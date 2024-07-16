@@ -1,5 +1,7 @@
 import sys
-sys.path.append('')
+import os
+current_dir = os.getcwd()
+sys.path.append(current_dir)
 from quantum_circuit import QuantumCircuit
 from qiskit import QuantumRegister, AncillaRegister
 from bit_functions import full_bitfield, get_qubit_list
@@ -39,7 +41,7 @@ class find_num(grover_circuit):
     def calculation_logic(self) -> QuantumCircuit:
         pass
 
-    def build_iteration(self, winner_num_list : list = [], circuit_nqubits : int = 0, block_diagram=True) -> None:
+    def build_iteration(self, winner_num_list : list | int = [], circuit_nqubits : int = 0, block_diagram=True) -> None:
         '''
         Build the iteration for the Grover circuit for the winner list
         :param circuit_nqubits = The number of qubits in the circuits (Minimum the vnumber needed for max value in the winner list)

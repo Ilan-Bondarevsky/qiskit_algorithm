@@ -1,6 +1,8 @@
 # from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
 import sys
-sys.path.append('')
+import os
+current_dir = os.getcwd()
+sys.path.append(current_dir)
 from Backend.backend import *
 from Result.result import *
 from qiskit.quantum_info import Operator

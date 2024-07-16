@@ -1,8 +1,10 @@
 import sys
-sys.path.append('')
+import os
+current_dir = os.getcwd()
+sys.path.append(current_dir)
 from quantum_circuit import QuantumCircuit
 from qiskit.transpiler import CouplingMap
-from backend import Backend
+from Backend.backend import Backend
 from qiskit_ibm_provider import IBMProvider
 
 class IBM_backend(Backend):

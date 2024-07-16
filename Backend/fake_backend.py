@@ -1,10 +1,12 @@
 import sys
-sys.path.append('')
+import os
+current_dir = os.getcwd()
+sys.path.append(current_dir)
 from quantum_circuit import QuantumCircuit
 # import qiskit.providers.fake_provider
 from qiskit.transpiler import CouplingMap
 import qiskit_ibm_runtime.fake_provider
-from backend import Backend
+from Backend.backend import Backend
 
 class FakeBackend(Backend):
     def __init__(self, backend_name : str) -> None:
