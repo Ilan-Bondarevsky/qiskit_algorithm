@@ -1,8 +1,8 @@
-from qiskit import Aer, execute, transpile
+from qiskit import transpile
 import qiskit.providers.fake_provider
 from qiskit_ibm_provider import IBMProvider
 from qiskit.transpiler.passes import RemoveBarriers
-from qiskit_aer import AerSimulator
+from qiskit_aer import AerSimulator, Aer
 
 def run_backend(quantum_circuit, backend, *args, **kwargs):
     '''Run current circuit on a given backend'''
