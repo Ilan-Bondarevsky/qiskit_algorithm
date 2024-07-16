@@ -25,7 +25,14 @@ class Backend():
 
     @copy_docs_and_signature_from(qiskit_transpiler)
     def transpile_save_param(self, qc : QuantumCircuit, optimization_level : int = 3, initial_layout = None, seed_transpiler : int = None, **kwargs):
+        save_input = {
+            key : val
+            for key, val in kwargs.items() if 'input' in key
+        }
+        for key in save_input:
+            kwargs.pop(key)
         transpiled_qc = self.transpile(qc, optimization_level=optimization_level, initial_layout=initial_layout, seed_transpiler=seed_transpiler, **kwargs)
+        kwargs.update(save_input)
         return saved_transpile_action_parameters(original_qc=qc, transpiled_qc=transpiled_qc, optimization_level=optimization_level, 
                                                  initial_layout=initial_layout, seed_transpiler=seed_transpiler, backend=self, backend_name = self.backend.name,
                                                  **kwargs)
@@ -77,8 +84,9 @@ if __name__ == "__main__":
     print(qc.draw())
     job = backend.execute(qc)
     print(job.result())
-    qc_transpile = backend.traspile_qiskit(qc)[0]
-    print(qc_transpile.draw())
-    job = backend.execute(qc_transpile)
-    print(job.result())
+    qc_transpile_pram = backend.transpile_save_param(qc, search_input=5)
+
+    # print(qc_transpile.draw())
+    # job = backend.execute(qc_transpile)
+    # print(job.result())
     
