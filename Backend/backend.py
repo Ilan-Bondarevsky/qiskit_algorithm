@@ -58,7 +58,7 @@ class Backend():
     def get_backend_coupling_map(self) -> CouplingMap | list[list[int]]:
         return self.backend.coupling_map
     
-    def execute(self, qc : QuantumCircuit, shots : int=1024, **kwargs):
+    def run(self, qc : QuantumCircuit, shots : int=1024, **kwargs):
         return self.backend.run(qc, shots=shots, **kwargs)
 
 class saved_transpile_action_parameters:
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     qc.h(1)
     qc.measure_all()
     print(qc.draw())
-    job = backend.execute(qc)
+    job = backend.run(qc)
     print(job.result())
     qc_transpile_pram = backend.transpile_save_param(qc, search_input=5)
 

@@ -55,10 +55,10 @@ if __name__ == "__main__":
     qc.h(1)
     qc.measure_all()
     print(qc.draw())
-    job = backend.execute(qc)
+    job = backend.run(qc)
     print(job.result())
     
     qc_transpile = backend.traspile_qiskit(qc)[0]
     print(qc_transpile.draw())
-    job = backend.execute(qc_transpile)
+    job = backend.run(qc_transpile)
     print(job.result())
