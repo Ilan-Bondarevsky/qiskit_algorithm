@@ -35,6 +35,7 @@ class Backend():
         kwargs.update(save_input)
         return saved_transpile_action_parameters(original_qc=qc, transpiled_qc=transpiled_qc, optimization_level=optimization_level, 
                                                  initial_layout=initial_layout, seed_transpiler=seed_transpiler, backend=self, backend_name = self.backend.name,
+                                                 original_qc_depth = qc.depth(), transpiled_qc_depth = transpiled_qc.depth(),
                                                  **kwargs)
     
     @copy_docs_and_signature_from(qiskit_transpiler)
@@ -73,18 +74,25 @@ class saved_transpile_action_parameters:
         
         for key, value in kwargs.items():
             setattr(self, key, value)
-            
+
+    def to_dict(self, ignore_attr : list[str] = []):
+        return {attr: getattr(self, attr) for attr in dir(self) if not callable(getattr(self, attr)) and not attr.startswith("__") and attr not in ignore_attr}           
             
 if __name__ == "__main__":
     backend = Backend(3)
     qc = QuantumCircuit(2)
     qc.x(0)
     qc.h(1)
-    qc.measure_all()
+    # qc.measure_all()
     print(qc.draw())
     job = backend.run(qc)
     print(job.result())
     qc_transpile_pram = backend.transpile_save_param(qc, search_input=5)
+
+    print(qc_transpile_pram.transpiled_qc.draw())
+    print(qc_transpile_pram)
+    print(qc_transpile_pram.to_dict())
+    print(qc_transpile_pram.to_dict(['backend', 'transpiled_qc','original_qc']))
 
     # print(qc_transpile.draw())
     # job = backend.execute(qc_transpile)
