@@ -158,6 +158,11 @@ class find_num_list(grover_circuit):
 
 if __name__ == "__main__":
     x =  find_num()
-    x.build_iteration([5], 4, block_diagram=True)
+    x.build_iteration([5], 4, block_diagram=False)
+    x.create_grover(num_solutions=1,block_diagram=False)
+    print(x.measure_qc[0].draw())
+    
+    x =  find_num_list()
+    x.build_iteration(winner_list=[5],num_array = [2,5,3,1], block_diagram=False)
     x.create_grover(num_solutions=1,block_diagram=False)
     print(x.measure_qc[0].draw())
