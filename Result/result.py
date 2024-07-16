@@ -46,3 +46,8 @@ class ResultData:
     def check_job_final_state(self):
         return self.job.in_final_state()
     
+    def get_full_time_taken(self):
+        return self.result.time_taken
+    
+    def get_result_time_taken(self, result_index : int = 0):
+        return self.result.results[result_index].time_taken
