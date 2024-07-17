@@ -1,10 +1,9 @@
 from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister, ClassicalRegister
 from bit_functions import full_bitfield, get_qubit_list
 
-from grover_cirq import grover_circuit
+from Grover.grover_cirq import grover_circuit
 from logic_gate_circuits import xnor_gate
 from backend_operation import run_simulator
-from qiskit.tools.visualization import plot_histogram
 
 class sudoko_grover(grover_circuit):
     def __init__(self, max_num : int = 4):
