@@ -166,3 +166,4 @@ cython_debug/
 tempCodeRunnerFile.py
 shor_algorithm/shor_circuir.txt
 .vscode/*
+logs/*

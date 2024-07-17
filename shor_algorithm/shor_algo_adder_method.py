@@ -1,9 +1,8 @@
 import numpy as np
 
-from qiskit import BasicAer, execute
-from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister, AncillaRegister, Aer, transpile
-from qiskit.tools.visualization import plot_histogram
-from qiskit.circuit.gate import Gate
+from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
+from qiskit.visualization import plot_histogram
+# from qiskit.circuit.gate import Gate
 
 import sys
 sys.path.insert(0, "D:/myProjects/AfekaCodeProjects/codeProjects/FinalProject_qiskit/qiskit_algorithm")
@@ -28,7 +27,7 @@ def set_start_state(qc, number, start_qubit):
         if bin_num[-i] == '1':
             qc.x(i+start_qubit-1)
             
-def adder(n, kind = "fixed"): #n is the number of qubits requer for one number
+def adder(n, kind = "fixed"): #n is the number of qubits requires for one number
     qc = QuantumCircuit(QuantumRegister(n), AncillaRegister(n + (1 if kind == "half" else 0) ))
 
     for j in range(n):
@@ -49,7 +48,7 @@ def subtracter(n):
     qc.name = f"SUB_{n}"
     return qc
 
-def adder_classic_a(n, a, kind = "fixed"): #n is the number of qubits require for one number
+def adder_classic_a(n, a, kind = "fixed"): #n is the number of qubits requires for one number
     qc = QuantumCircuit(QuantumRegister(n + (1 if kind == "half" else 0)))
     bit_field_a = bit_functions.full_bitfield(a, n)
 
