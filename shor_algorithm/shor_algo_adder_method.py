@@ -49,7 +49,7 @@ def subtracter(n):
     qc.name = f"SUB_{n}"
     return qc
 
-def adder_classic_a(n, a, kind = "fixed"): #n is the number of qubits requer for one number
+def adder_classic_a(n, a, kind = "fixed"): #n is the number of qubits require for one number
     qc = QuantumCircuit(QuantumRegister(n + (1 if kind == "half" else 0)))
     bit_field_a = bit_functions.full_bitfield(a, n)
 
@@ -172,6 +172,15 @@ def U(N, a, power):
     return qc
 
 def shor_circiut(N, a):
+    """Creates the Shor's circuit and returns it
+
+    Args:
+        N (int): The number we want to factor
+        a (int): A guess number to base the circuit on. The gdc between N and a must be 1
+
+    Returns:
+        QuantumCircuit: circuit of Shor's algorithm
+    """
     n = bit_functions.bit_length(N)
 
     qc = QuantumCircuit(4*n+3, 2*n)
