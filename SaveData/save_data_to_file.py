@@ -3,12 +3,12 @@ import csv
 import pandas as pd
 
 import sys
-current_dir = os.getcwd()
-sys.path.append(os.path.dirname(os.path.abspath(current_dir)))
+# current_dir = os.getcwd()
+# sys.path.append(os.path.dirname(os.path.abspath(current_dir)))
 from datetime import datetime
 
 class CSVWriter:
-    def __init__(self, file_name : str, folder_path : str = "logs"):
+    def __init__(self, file_name : str, folder_path : str = "..\logs"):
         self.folder_path = folder_path
         split_name = file_name.split('.')
         if len(split_name) > 2:
