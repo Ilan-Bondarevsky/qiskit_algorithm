@@ -7,10 +7,12 @@ from qiskit import transpile as qiskit_transpiler
 from qiskit.providers.fake_provider import GenericBackendV2
 from qiskit.transpiler import CouplingMap
 from tooltip import copy_docs_and_signature_from
-    
+from qiskit.circuit.library import standard_gates
+
 class Backend():
     def __init__(self, num_qubits : int = 1, coupling_map : list[list[int]] | CouplingMap | None = None) -> None:
-        self.backend = GenericBackendV2(num_qubits=num_qubits, coupling_map=coupling_map)
+        self.backend = GenericBackendV2(num_qubits=num_qubits, coupling_map=coupling_map, 
+                                        basis_gates=["id", "rz", "sx", "x", "cx", "rx", "ry","h","u3", "u", "u1", "u2", "p"])
         self.num_qubits = num_qubits
         self.coupling_map = coupling_map
       
@@ -59,8 +61,8 @@ class Backend():
     def get_backend_coupling_map(self) -> CouplingMap | list[list[int]]:
         return self.backend.coupling_map
     
-    def run(self, qc : QuantumCircuit, shots : int=1024, **kwargs):
-        return self.backend.run(qc, shots=shots, **kwargs)
+    def run(self, qc : QuantumCircuit, shots : int=1024, seed_simulator : int | None = None, **kwargs):
+        return self.backend.run(qc, shots=shots, seed_simulator = seed_simulator, **kwargs)
 
 class saved_transpile_action_parameters:
     def __init__(self, original_qc : QuantumCircuit = None, transpiled_qc : QuantumCircuit = None, optimization_level : int | None = None, 
