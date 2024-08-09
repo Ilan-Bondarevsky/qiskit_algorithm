@@ -61,9 +61,13 @@ class ResultData:
         return self.result.results[result_index].time_taken
     
     def to_dict(self):
-        return {
-            "seed_simulator": self.get_seed(),
+        output_dict ={
+           "seed_simulator": self.get_seed(),
             "counts": self.get_counts(),
-            "time_taken": self.get_full_time_taken(),
-            "result_time_taken": [self.get_result_time_taken(i) for i in range(len(self.result.results))]
+            "time_taken": self.get_full_time_taken() 
         }
+        key = "result_time_taken"
+        for i in range(len(self.result.results)):
+            cur_key = f"{key}_{i}" if i else f"{key}"
+            output_dict[cur_key] = self.get_result_time_taken(i)
+        return output_dict

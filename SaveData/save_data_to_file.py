@@ -35,9 +35,19 @@ class CSVWriter:
         :param data: List of tuples (saved_transpile_action_parameters, ResultData)
         """
         combined_data = []
+        # Transform data to dictionary
         for transpile_params, result_data in data:
             combined_dict = {**transpile_params.to_dict(ignore_attr = ignore_attr_tranplie), **result_data.to_dict()}
             combined_data.append(combined_dict)
+        # Get keys of data
+        keys = set([])
+        for data_dict in combined_data:
+            keys.update(list(data_dict.keys()))
+        # Add missing keys to dict with empty value
+        for data_dict in combined_data:
+            for key in keys:
+                if key not in set(list(data_dict.keys())):
+                    data_dict[key] = ''
         
         # Convert list of dictionaries to a pandas DataFrame
         df = pd.DataFrame(combined_data)
