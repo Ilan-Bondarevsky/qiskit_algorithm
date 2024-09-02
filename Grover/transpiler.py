@@ -12,6 +12,7 @@ from qiskit.circuit import instruction
 from typing import NamedTuple
 import numpy as np
 from Grover.grover_num_list_cirq import find_num_list
+from qiskit import QuantumRegister, AncillaRegister
 
 class QuantumInstruction(NamedTuple):
     qubits : list[int]
@@ -20,6 +21,86 @@ class IndexInstruction(NamedTuple):
     q_instruction : QuantumInstruction
     index: int
 
+def contiguous_sublists(input_list : list):
+    length = len(input_list)
+    sublists = []
+    # Generate all contiguous sublists
+    for start in range(length):
+        for end in range(start + 1, length + 1):
+            sublists.append(input_list[start:end])
+    # Sort the sublists by length in descending order
+    sublists.sort(key=len, reverse=True)
+    return sublists
+
+class our_tranpiler:
+    def __init__(self, qc : QuantumCircuit) -> None:
+        self.qc = qc
+        self.remove_barriar_gate()
+        self.remove_similiar_adjacent()
+    
+    def get_circuit(self) ->QuantumCircuit:
+        return self.qc
+    
+    def remove_barriar_gate(self):
+        valid_instruction_list = []
+        for instruction in self.qc.data:
+            if instruction.operation.name.lower() != 'barrier':
+                valid_instruction_list.append(instruction)
+        self.qc.data = valid_instruction_list
+
+    def remove_similiar_adjacent(self):
+        qubit_dict = { qubit : [] for qubit in self.qc.qubits}
+        valid_results = []
+        # Step 1 : Run on each instruction
+        for instruction in self.qc.data:
+            valid_instruction = False
+            # Step 2 : Check if last accurance for qubits happened (For all qubits)
+            for qubit in instruction.qubits:
+                if len(qubit_dict[qubit]) > 0:                    
+                    if instruction != qubit_dict[qubit][-1]:
+                        valid_instruction = True
+                else:
+                    valid_instruction = True
+            # Step 3 : Update for all qubits list the instruction
+            for qubit in instruction.qubits:
+                if valid_instruction:
+                    qubit_dict[qubit].append(instruction)
+                else:
+                    qubit_dict[qubit].pop()
+            # Step 4 : Save valid instruction or remove instruction if not valid from list    
+            if valid_instruction:
+                valid_results.append(instruction)
+            else:
+                for index, inst in enumerate(valid_results[::-1]):
+                    index = len(valid_results) - index - 1
+                    if inst == instruction:
+                        valid_results.pop(index)
+                        break
+        # Step 5 : Save new instruction list to the coircuit data
+        self.qc.data = valid_results
+        
+    def unify_one_qubit_instructions(self, instruction_list : list) -> None | list:
+        # Step 1 : Check all instruction are one qubit and the same qubit
+        qubit = None
+        for instruction in instruction_list:
+            if len(instruction.qubits) > 1:
+                return None
+            if qubit is None:
+                qubit = instruction.qubits[0]
+            elif qubit != instruction.qubits[0]:
+                return None
+        
+        for length in range(len(instruction_list) - 1, 1, -1):
+            for start_index in range(len(instruction_list)):
+                if start_index + length >= len(instruction_list):
+                    continue
+                instruction_sublist = instruction_list[start_index : length + 1]
+                
+                qc = QuantumCircuit(qubit)
+                qc.data = instruction_sublist
+                
+  
+        
 def remove_barriar_gate(qc:  QuantumCircuit):
     instruction_index = 0
     while len(qc.data) > instruction_index:
@@ -325,13 +406,39 @@ if __name__ == '__main__':
     # print('\n')
     # print(abs(z) == abs(x))
     # print(z2==y)
-    x =  find_num_list()
-    x.build_iteration(winner_list=[5],num_array = [0,5,3], block_diagram=False)
-    x.create_grover(num_solutions=1,block_diagram=False)
-    print(x.measure_qc[0].draw())
+    # x =  find_num_list()
+    # x.build_iteration(winner_list=[5],num_array = [0,5,3], block_diagram=False)
+    # x.create_grover(num_solutions=1,block_diagram=False)
+    # print(x.measure_qc[0].draw())
     
-    qc = remove_barriar_gate(x.measure_qc[0])
-    print(qc.draw())
+    # qc = remove_barriar_gate(x.measure_qc[0])
+    # print(qc.draw())
     
-    qc, is_removed = remove_similiar_adjacent(qc)
+    # qc, is_removed = remove_similiar_adjacent(qc)
+    # print(qc.draw())
+    
+    
+    qc = QuantumCircuit(QuantumRegister(5))
+    qc.add_register(AncillaRegister(4))
+    qc.h(0)
+    qc.x(2)
+    qc.cx(3, 5)
+    qc.ccx(1,3,6)
+    qc.h(0)
+    qc.x(3)
+    qc.h(2)
+    qc.h(2)
+    qc.x(4)
+    qc.x(3)
+    qc.h(0)
+    qc.x(0)
+    qc.x(0)
+    qc.barrier(1,2,3,4)
+    qc.cx(0,1)
+    qc.x(0)
+    qc.x(0)
+    qc.cx(0,1)
+    qc.h(0)
     print(qc.draw())
+    x = our_tranpiler(qc)
+    print(x.get_circuit().draw())
