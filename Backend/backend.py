@@ -9,21 +9,20 @@ from qiskit.transpiler import CouplingMap
 from tooltip import copy_docs_and_signature_from
 from qiskit.circuit.library import standard_gates
 from itertools import permutations
+from qiskit_aer import AerSimulator
 
 class Backend():
-    def __init__(self, num_qubits : int = 1, coupling_map : list[list[int]] | CouplingMap | None = None, 
+    def __init__(self, num_qubits : int = 0, coupling_map : list[list[int]] | CouplingMap | None = None, 
                  basis_gates : list[str] = ["id", "rz", "sx", "x", "cx", "rx", "ry","h","u3", "u", "u1", "u2", "p"]) -> None:
+        num_qubits = max(0, int(num_qubits))
         standard_gate_dict = Backend.get_standard_gate_list()
         basis_gates = set(basis_gates)
         if not basis_gates.issubset(set(standard_gate_dict.keys())):
             raise Exception("Not all chosen Basis Gates are valid, look at Standard gate List for valid information")
-        self.backend = GenericBackendV2(num_qubits=num_qubits, coupling_map=coupling_map, basis_gates=list(basis_gates), calibrate_instructions = False)
-        
-        # prop = {
-        #     tuple(connection) : None
-        #     for connection in list(permutations(range(standard_gate_dict['ccx'].num_qubits)))
-        # }
-        # self.backend._target.add_instruction(standard_gate_dict['ccx'], prop)
+        if num_qubits:
+            self.backend = GenericBackendV2(num_qubits=num_qubits, coupling_map=coupling_map, basis_gates=list(basis_gates), calibrate_instructions = False)
+        else:
+            self.backend = AerSimulator(basis_gates=list(basis_gates), coupling_map=coupling_map)
         self.num_qubits = num_qubits
         self.coupling_map = coupling_map
       
