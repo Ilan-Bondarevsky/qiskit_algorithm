@@ -1,8 +1,6 @@
 import numpy as np
 
 from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
-from qiskit.visualization import plot_histogram
-# from qiskit.circuit.gate import Gate
 
 import sys
 sys.path.insert(0, "D:/myProjects/AfekaCodeProjects/codeProjects/FinalProject_qiskit/qiskit_algorithm")
