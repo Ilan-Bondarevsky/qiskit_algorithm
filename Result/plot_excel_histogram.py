@@ -22,10 +22,10 @@ def plot_histogram(data, field, *, bin_width, min_value=None, max_value=None, ve
     if vertical_line is not None:
         plt.legend()
     plt.show()
+if __name__ == "__main__":
+    file_path = r'C:\Users\User\Downloads\x\outputfile\grover_circuit_A_6_qubits.csv'
+    data = pd.read_csv(file_path)
+    data.drop(data[data['optimization_level']==3].index, inplace=True)
 
-file_path = r'C:\Users\User\Downloads\x\outputfile\grover_circuit_A_6_qubits.csv'
-data = pd.read_csv(file_path)
-data.drop(data[data['optimization_level']==3].index, inplace=True)
-
-plot_histogram(data, "result_time_taken", bin_width=0.01, vertical_line=0.0048742, additional_name_text = "Grover 6Q Search 6")
-plot_histogram(data, "transpiled_qc_depth", bin_width=10, vertical_line=1934, additional_name_text = "Grover 6Q Search 6")
+    plot_histogram(data, "result_time_taken", bin_width=0.01, vertical_line=0.0048742, additional_name_text = "Grover 6Q Search 6")
+    plot_histogram(data, "transpiled_qc_depth", bin_width=10, vertical_line=1934, additional_name_text = "Grover 6Q Search 6")
