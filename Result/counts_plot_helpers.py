@@ -9,7 +9,7 @@ def add_zero_values(counts, num_qubits):
         if bin_val not in counts.keys():
             counts[bin_val] = 0
 
-def compine_less_then(counts, min_val):
+def combine_less_then(counts, min_val):
     _sum = 0
     for k, v in list(counts.items())[:]:
         if v < min_val:

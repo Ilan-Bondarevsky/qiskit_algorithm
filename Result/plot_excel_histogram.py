@@ -17,11 +17,13 @@ def plot_histogram(data, field, *, bin_width, min_value=None, max_value=None, ve
     plt.hist(filtered_data, bins=int((filtered_data.max() - filtered_data.min()) / bin_width), edgecolor='black')
     plt.title(f'{additional_name_text} Histogram of Result Time Taken')
     plt.xlabel('Result Time Taken')
-    plt.ylabel('Frequency')
+    plt.ylabel('Counts')
     plt.grid(True)
     if vertical_line is not None:
         plt.legend()
     plt.show()
+
+
 if __name__ == "__main__":
     file_path = r'C:\Users\User\Downloads\x\outputfile\grover_circuit_A_6_qubits.csv'
     data = pd.read_csv(file_path)
