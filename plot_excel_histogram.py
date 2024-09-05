@@ -1,9 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def plot_histogram(file_path, field, *, bin_width, min_value=None, max_value=None, vertical_line=None):
-    data = pd.read_csv(file_path)
-    
+def plot_histogram(data, field, *, bin_width, min_value=None, max_value=None, vertical_line=None):
     time_taken = data[field]
 
     if min_value is not None:
@@ -26,5 +24,8 @@ def plot_histogram(file_path, field, *, bin_width, min_value=None, max_value=Non
     plt.show()
 
 file_path = r'D:\myProjects\AfekaCodeProjects\codeProjects\FinalProject_qiskit\qiskit_algorithm\logs\add_mod_11_results_2000_plus_48_2024_08_20_18_18_10.csv'
-plot_histogram(file_path, "result_time_taken", bin_width=10, max_value=1000, vertical_line=200)
-plot_histogram(file_path, "transpiled_qc_depth", bin_width=10, vertical_line=200)
+data = pd.read_csv(file_path)
+data.drop(data[data['optimization_level']==3].index, inplace=True)
+
+plot_histogram(data, "result_time_taken", bin_width=10, max_value=1000, vertical_line=0.011923)
+plot_histogram(data, "transpiled_qc_depth", bin_width=10, vertical_line=175)
