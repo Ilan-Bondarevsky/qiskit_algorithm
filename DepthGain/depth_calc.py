@@ -37,10 +37,12 @@ class DepthCalc:
                     add_gate = False
                     self.__depth_dict[num_qubits_in_inst]['NumGates'] = self.__depth_dict[num_qubits_in_inst]['NumGates'] + 1
                     
-    def get_num_gates(self, qubit_gate_num : int = 1) -> int:
+    def get_num_gates(self, qubit_gate_num : int | None = None) -> int:
+        if qubit_gate_num is None:
+            return sum([self.__depth_dict[gate_num]['NumGates'] for gate_num in self.__depth_dict])
         return self.__depth_dict[qubit_gate_num]['NumGates']
     
-    def get_max_qubit_gate(self, qubit_gate_num : int | None = None):
+    def get_max_qubit_gate(self, qubit_gate_num : int | None = None, get_depth : bool = False):
         qubit_count_dict = {}
         for gate_num in self.__depth_dict:
             if qubit_gate_num is not None and gate_num != qubit_gate_num:
@@ -51,8 +53,15 @@ class DepthCalc:
                 if qubit not in qubit_count_dict:
                     qubit_count_dict[qubit] = 0
                 qubit_count_dict[qubit] = qubit_count_dict[qubit] + count
+        
+        if get_depth:
+            return max(qubit_count_dict.values())
         return max(qubit_count_dict, key=qubit_count_dict.get)
 
+    def print_depth_dict(self):
+        for key, value in self.__depth_dict.items():
+            print(f"{key} : {value}")
+            
 if __name__ == '__main__':
     qc = QuantumCircuit(QuantumRegister(5))
     qc.add_register(AncillaRegister(4))
@@ -77,5 +86,6 @@ if __name__ == '__main__':
     qc.h(0)
     y=DepthCalc(qc)
     print(y.get_max_qubit_gate(3))
-    print(y.get_num_gates(1))
-    
+    print(y.get_num_gates())
+    print(qc.depth())
+    print(y.get_max_qubit_gate(get_depth=True))
