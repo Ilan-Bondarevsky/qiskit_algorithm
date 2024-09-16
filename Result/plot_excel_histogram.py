@@ -15,8 +15,8 @@ def plot_histogram(data, field, *, bin_width, min_value=None, max_value=None, ve
     if vertical_line is not None:
         plt.axvline(vertical_line, color='red', linestyle='--', linewidth=2, label=f'Aer {field}: {vertical_line}')
     plt.hist(filtered_data, bins=int((filtered_data.max() - filtered_data.min()) / bin_width), edgecolor='black')
-    plt.title(f'{additional_name_text} Histogram of Result Time Taken')
-    plt.xlabel('Result Time Taken')
+    plt.title(f'{additional_name_text} Histogram of {field}')
+    plt.xlabel(field)
     plt.ylabel('Counts')
     plt.grid(True)
     if vertical_line is not None:
