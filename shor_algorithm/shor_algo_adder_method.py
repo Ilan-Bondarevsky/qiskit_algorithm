@@ -85,8 +85,8 @@ def qft(n, swap = True):
         for qubit in range(n//2):
             qc.swap(qubit, n-qubit-1)
 
-    # qc = qc.to_gate()
-    # qc.name = "QFT"
+    qc = qc.to_gate()
+    qc.name = "QFT"
     return qc
 
 def qft_dagger(n, swap = True):
