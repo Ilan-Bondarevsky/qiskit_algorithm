@@ -13,7 +13,7 @@ class find_num(grover_circuit):
         super().__init__()
 
     @staticmethod
-    def num_oracle(nqubits: int, winner_num : int) -> QuantumCircuit:
+    def num_oracle(nqubits: int, winner_num : int, show_name : bool = True) -> QuantumCircuit:
         bit_list = full_bitfield(winner_num, nqubits)[::-1]
         if nqubits < len(bit_list):
             raise Exception("The number needs more qubits!")
@@ -21,27 +21,27 @@ class find_num(grover_circuit):
         index_list = [(index, int(not val)) for index, val in enumerate(bit_list)]
 
         qc = grover_circuit.oracle(nqubits, set_change_value=index_list)
-        qc.name = f"Num_Oracle ({winner_num})"
+        qc.name = f"Num_Oracle ({winner_num})" if show_name else f"Oracle"
         return qc
     
     @staticmethod
-    def series_num_oracle(nqubits : int, winner_list :list , block_diagram = True) -> QuantumCircuit:
+    def series_num_oracle(nqubits : int, winner_list :list , block_diagram = True, show_winner_name : bool = True) -> QuantumCircuit:
         qc = QuantumCircuit(nqubits)
         for num in winner_list:
-            cur_qc = find_num.num_oracle(nqubits, num)
+            cur_qc = find_num.num_oracle(nqubits, num, show_winner_name)
             if block_diagram:
                 qc.append(cur_qc, qc.qubits)
             else:
                 qc.barrier(qc.qubits)
                 qc = qc.compose(cur_qc, qc.qubits)
                 qc.barrier(qc.qubits)
-        qc.name = f"Oracle {list(winner_list)}"
+        qc.name = f"Oracle {list(winner_list)}" if show_winner_name else f"Oracle"
         return qc
     
     def calculation_logic(self) -> QuantumCircuit:
         pass
 
-    def build_iteration(self, winner_num_list : list | int = [], circuit_nqubits : int = 0, block_diagram=True) -> None:
+    def build_iteration(self, winner_num_list : list | int = [], circuit_nqubits : int = 0, block_diagram=True, show_name : bool = True) -> None:
         '''
         Build the iteration for the Grover circuit for the winner list
         :param circuit_nqubits = The number of qubits in the circuits (Minimum the vnumber needed for max value in the winner list)
@@ -52,10 +52,12 @@ class find_num(grover_circuit):
             raise Exception("Winner list is empty!")
         max_winner_qubit_needed = len(full_bitfield(max(winner_num_list)))
         circuit_nqubits = max(max_winner_qubit_needed, circuit_nqubits)
-        qc = find_num.series_num_oracle(circuit_nqubits, winner_num_list, block_diagram)
+        
+        qc = QuantumCircuit(QuantumRegister(circuit_nqubits, 'IndexQ'))
+        qc = qc.compose(find_num.series_num_oracle(circuit_nqubits, winner_num_list, block_diagram, show_winner_name=show_name), qc.qubits)
         
         qubits = get_qubit_list(qc)
-        diffuser_qc = grover_circuit.diffuser(len(qubits))
+        diffuser_qc = grover_circuit.diffuser(len(qubits), show_num_qubits=show_name)
         qc.add_register(diffuser_qc.ancillas)
         if block_diagram:
             qc.append(diffuser_qc, qubits + list(diffuser_qc.ancillas))
@@ -66,6 +68,9 @@ class find_num(grover_circuit):
 
         qc.name = "Grover_Find_Num_Iteration"
         self.iteration_qc = qc
+    
+    def build_qc_qubit_map(self) -> QuantumCircuit:
+        return QuantumCircuit(QuantumRegister(len(get_qubit_list(self.iteration_qc)), 'indexQ'))
 
 
 class find_num_list(grover_circuit):
@@ -94,7 +99,7 @@ class find_num_list(grover_circuit):
         qc.name = f"[I = {index}, Val = {value}]"
         return qc 
     
-    def calculation_logic(self, num_array : list = [], block_diagram : bool = True) -> None:
+    def calculation_logic(self, num_array : list = [], block_diagram : bool = True, show_list_name : bool = True) -> None:
         '''
         Return a Calculation Circuit for the find_num_list Grover circuit.
         '''
@@ -102,8 +107,8 @@ class find_num_list(grover_circuit):
             return
         
         data_qc = QuantumCircuit(
-            QuantumRegister(len(full_bitfield(len(num_array) - 1)), 'index'),
-            AncillaRegister(len(full_bitfield(max(num_array))), 'data')
+            QuantumRegister(len(full_bitfield(len(num_array) - 1)), 'indexQ'),
+            AncillaRegister(len(full_bitfield(max(num_array))), 'dataA')
         )
         value_qubit_length = len(data_qc.ancillas)
         index_qubit_length = len(get_qubit_list(data_qc))
@@ -114,10 +119,10 @@ class find_num_list(grover_circuit):
             else:
                 data_qc.barrier(data_qc.qubits)
                 data_qc = data_qc.compose(self.__index_data_cirq(index, data, index_qubit_length, value_qubit_length), data_qc.qubits)
-        data_qc.name = f"Data {num_array}"
+        data_qc.name = f"Data {num_array}" if show_list_name else f"Data List"
         self.calculation_qc = data_qc
 
-    def build_iteration(self, winner_list = [], num_array : list = [], block_diagram=True, default_value:int = 0):
+    def build_iteration(self, winner_list = [], num_array : list = [], block_diagram=True, default_value:int = 0, show_name : bool = True):
         '''
         Build a iteration for the Find_Num_In_List Grover circuit
         : param default_value is the default number in winner list, can search for it ONLY when the list is the length of 2 powered by N 
@@ -129,24 +134,24 @@ class find_num_list(grover_circuit):
         if default_value in winner_list and pow(2, (len(num_array) - 1).bit_length()) != len(num_array):
             raise Exception(f"The winner list has a value of {default_value} when the number list is not the size of 2 powered by an N")
         
-        self.calculation_logic(num_array, block_diagram)
+        self.calculation_logic(num_array, block_diagram, show_list_name=show_name)
         
         qc = QuantumCircuit(self.calculation_qc.qubits)
         if block_diagram:
             qc.append(self.calculation_qc, qc.qubits)
-            oracle = find_num.series_num_oracle(len(qc.ancillas), winner_list, block_diagram)
+            oracle = find_num.series_num_oracle(len(qc.ancillas), winner_list, block_diagram, show_winner_name=show_name)
             qc.append(oracle, qc.ancillas)
             qc.append(self.calculation_qc.inverse(), qc.qubits)
         else:
             qc = qc.compose(self.calculation_qc, qc.qubits)
             qc.barrier(qc.qubits)
-            oracle = find_num.series_num_oracle(len(qc.ancillas), winner_list, block_diagram)
+            oracle = find_num.series_num_oracle(len(qc.ancillas), winner_list, block_diagram, show_winner_name=show_name)
             qc = qc.compose(oracle, qc.ancillas)
             qc.barrier(qc.qubits)
             qc = qc.compose(self.calculation_qc.inverse(), qc.qubits)
         
         qubits = get_qubit_list(qc)
-        diffuser_qc = grover_circuit.diffuser(len(qubits))
+        diffuser_qc = grover_circuit.diffuser(len(qubits), show_num_qubits=show_name)
         qc.add_register(diffuser_qc.ancillas)
         if block_diagram:
             qc.append(diffuser_qc, qubits + list(diffuser_qc.ancillas))
@@ -158,6 +163,9 @@ class find_num_list(grover_circuit):
         qc.name = "Grover_Find_Num_List_Iteration"
         self.iteration_qc = qc
 
+    def build_qc_qubit_map(self) -> QuantumCircuit:
+        return QuantumCircuit(QuantumRegister(len(get_qubit_list(self.iteration_qc)), 'indexQ'), QuantumRegister(len(self.iteration_qc.ancillas), 'dataQ'))
+    
 if __name__ == "__main__":
     x =  find_num()
     x.build_iteration([5], 4, block_diagram=False)

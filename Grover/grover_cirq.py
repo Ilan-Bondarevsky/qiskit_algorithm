@@ -41,7 +41,7 @@ class grover_circuit(ABC):
         return qc
     
     @staticmethod
-    def diffuser(nqubits:int, mode : str='noancilla') ->QuantumCircuit:
+    def diffuser(nqubits:int, mode : str='noancilla', show_num_qubits : bool = True) ->QuantumCircuit:
         cnz_cirq = cnz(nqubits, mode)
         qc = QuantumCircuit(cnz_cirq.qubits)
         
@@ -52,7 +52,7 @@ class grover_circuit(ABC):
         qc.barrier(qc.qubits)
         qc.x(get_qubit_list(qc))
         qc.h(get_qubit_list(qc))
-        qc.name = f'Diffuser {nqubits}Q'
+        qc.name = f'Diffuser {nqubits}Q' if show_num_qubits else f"Diffuser"
 
         return qc
     
@@ -71,7 +71,7 @@ class grover_circuit(ABC):
             return [math.floor((math.pi * math.sqrt(size_N / num_solutions)) / 4)]
         return list(range(1, math.floor((math.pi * math.sqrt(size_N)) / 4) + 1))
 
-    def create_grover(self, num_solutions : int = 1, prep_value : list = [], block_diagram : bool = True) -> None:
+    def create_grover(self, num_solutions : int = 1, prep_value : list = [], iteration_block_diagram : bool = True, prep_block_diagram : bool = False) -> None:
         if self.iteration_qc is None:
             raise Exception("Iteration circuit not found!")
         qubits = get_qubit_list(self.iteration_qc)
@@ -81,12 +81,15 @@ class grover_circuit(ABC):
 
         grover_experiments = []
         for i in iterations:
-            qc = QuantumCircuit(self.iteration_qc.qubits)
-            if block_diagram:
-                qc.append(prep_qc, qubits)
+            qc = self.build_qc_qubit_map()
+            qubits = get_qubit_list(qc)
+            if prep_block_diagram:
+               qc.append(prep_qc, qubits)
+            else:
+               qc = qc.compose(prep_qc, qubits)  
+            if iteration_block_diagram:
                 [qc.append(self.iteration_qc, qc.qubits) for _ in range(i)]
             else:
-                qc = qc.compose(prep_qc, qubits)
                 for _ in range(i):
                     qc = qc.compose(self.iteration_qc, qc.qubits)
 
@@ -119,4 +122,7 @@ class grover_circuit(ABC):
     
     @abstractmethod
     def build_iteration(self):
+        pass
+    @abstractmethod
+    def build_qc_qubit_map(self):
         pass
