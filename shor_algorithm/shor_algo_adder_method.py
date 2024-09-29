@@ -63,8 +63,8 @@ def adder_classic_a(n, a, kind = "fixed"): #n is the number of qubits requires f
                 angle = 2*np.pi / (2**(n-i+1))
                 qc.p(angle, n)
 
-    qc = qc.to_gate()
-    qc.name = f"ɸ ADD_{a}"
+    # qc = qc.to_gate()
+    # qc.name = f"ɸ ADD_{a}"
     return qc
 
 def subtracter_classic_a(n, a):
