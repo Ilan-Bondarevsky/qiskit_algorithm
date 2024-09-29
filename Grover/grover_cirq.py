@@ -76,17 +76,18 @@ class grover_circuit(ABC):
             raise Exception("Iteration circuit not found!")
         qubits = get_qubit_list(self.iteration_qc)
         prep_qc, world_qubit_size = self.__prep_qubits(len(qubits), prep_value)
-
+        
         iterations = grover_circuit.calculate_iterations(world_qubit_size, num_solutions)
 
+        qc = self.build_qc_qubit_map()
+        qubits = get_qubit_list(qc)
+        if prep_block_diagram:
+            qc.append(prep_qc, qubits)
+        else:
+            qc = qc.compose(prep_qc, qubits)  
+               
         grover_experiments = []
         for i in iterations:
-            qc = self.build_qc_qubit_map()
-            qubits = get_qubit_list(qc)
-            if prep_block_diagram:
-               qc.append(prep_qc, qubits)
-            else:
-               qc = qc.compose(prep_qc, qubits)  
             if iteration_block_diagram:
                 [qc.append(self.iteration_qc, qc.qubits) for _ in range(i)]
             else:

@@ -164,7 +164,7 @@ class find_num_list(grover_circuit):
         self.iteration_qc = qc
 
     def build_qc_qubit_map(self) -> QuantumCircuit:
-        return QuantumCircuit(QuantumRegister(len(get_qubit_list(self.iteration_qc)), 'indexQ'), QuantumRegister(len(self.iteration_qc.ancillas), 'dataQ'))
+        return QuantumCircuit(QuantumRegister(len(get_qubit_list(self.iteration_qc)), 'indexQ'), AncillaRegister(len(self.iteration_qc.ancillas), 'dataQ'))
     
 if __name__ == "__main__":
     x =  find_num()
